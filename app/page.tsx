@@ -9,58 +9,47 @@ import ReactConfetti from "react-confetti"
 import Lottie from "lottie-react"
 import openBOX from "@/components/openBOX.json"
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
-  return isMobile
+function useIsMobile() { //react hook that helps know when the screen is mobile size
+  const [isMobile, setIsMobile] = useState(false) //a boolean that tracks if the function is mobile or not setIsMobile is what updates and its set to false right now
+  useEffect(() => { //runs when the component in the hook is being used
+    const checkMobile = () => setIsMobile(window.innerWidth < 768) //if the screen is mobile size it setsIsMobile true
+    checkMobile() //get current size screen
+    window.addEventListener("resize", checkMobile) //if screen is resized it checks checkMobile again
+    return () => window.removeEventListener("resize", checkMobile) //removes resize linear
+  }, [])  //ensures the useEffect is run once atleast
+  return isMobile //true or false 
 }
 
-export default function PickABoxGame() {
-  // Get the brand config
-  const config = DEFAULT_BRAND_CONFIG
-  // Detect if the device is mobile
-  const isMobile = useIsMobile()
-  // Determine the number of boxes based on device
-  const numBoxes = isMobile ? config.boxCount.mobile : config.boxCount.desktop
-  // Game state: waiting, playing, or finished
-  const [gameState, setGameState] = useState<"waiting" | "playing" | "finished">("waiting")
-  // Index of the selected box
-  const [selectedBox, setSelectedBox] = useState<number | null>(null)
-  // The prize revealed after selecting a box
-  const [revealedPrize, setRevealedPrize] = useState<typeof config.prizes[0] | null>(null)
-  // The prizes assigned to each box for this round
-  const [boxPrizes, setBoxPrizes] = useState<typeof config.prizes[0][]>([])
-  // Whether to show the coupon popup
-  const [showCoupon, setShowCoupon] = useState(false)
-  // Whether to show confetti animation
-  const [showConfetti, setShowConfetti] = useState(false)
-  // Add a state to control when the bubble is shown
-  const [showBubble, setShowBubble] = useState(false)
+export default function PickABoxGame() { 
+  const config = DEFAULT_BRAND_CONFIG//get the brand configuration
+  const isMobile = useIsMobile()  //checks if device is mobile
+  const numBoxes = isMobile ? config.boxCount.mobile : config.boxCount.desktop // Determine the number of boxes based on device
+  const [gameState, setGameState] = useState<"waiting" | "playing" | "finished">("waiting")// Game state: waiting (start screen), playing, or finished (coupon)
+  const [selectedBox, setSelectedBox] = useState<number | null>(null) // Index of the selected box
+  const [revealedPrize, setRevealedPrize] = useState<typeof config.prizes[0] | null>(null) // The prize revealed after selecting a box
+  const [boxPrizes, setBoxPrizes] = useState<typeof config.prizes[0][]>([]) // The prizes assigned to each box for this round
+  const [showCoupon, setShowCoupon] = useState(false) // Whether to show the coupon popup
+  const [showConfetti, setShowConfetti] = useState(false) // Whether to show confetti animation
+  const [showBubble, setShowBubble] = useState(false)// Add a state to control when the bubble is shown
   const errorAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for error sound
   const winningAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for winning sound
 
   // Generate a random prize for a box, using the brand-config weights of high medium low
-  const getRandomPrize = () => {
-    // Create a pool of prizes, repeated by their weight
-    const pool = config.prizes.flatMap((prize) => {
-      let weight = 1
-      if (prize.value && config.probabilityWeights) {
+  const getRandomPrize = () => { //return random prize
+    const pool = config.prizes.flatMap((prize) => { //this creats a pool of all the prizes and based by their weight how many times they are repeated in the pool. Flatmap makes a flattened array of the pool.
+      let weight = 1 // prizes have atleats one change by default
+      if (prize.value && config.probabilityWeights) { // looks up the prizes weights and adds it to the pool
         weight = config.probabilityWeights[prize.value]
       }
-      return Array(weight).fill(prize)
+      return Array(weight).fill(prize) //creates an array of length weight then this array gets flattened by the pool
     })
     // Pick a random prize from the pool
-    return pool[Math.floor(Math.random() * pool.length)]
+    return pool[Math.floor(Math.random() * pool.length)] //gives u a float between 0 and 1 then multiplies this value by pool.length round down and it gives u a random index
   }
 
-  // Start the game: assign prizes and reset state
-  const startGame = () => {
-    setBoxPrizes(Array(numBoxes).fill(null).map(getRandomPrize)) // Assign random prizes
+  // Start the game gets triggered when the play button is pressed: assign prizes and reset state
+  const startGame = () => {  
+    setBoxPrizes(Array(numBoxes).fill(null).map(getRandomPrize)) // creates a new array with numbox slots so if 6 boxes then 6 slots then runs .map on randomPrize and generates a new array of prizes per box 
     setSelectedBox(null) // No box selected
     setRevealedPrize(null) // No prize revealed
     setGameState("playing") // Set state to playing
@@ -69,32 +58,32 @@ export default function PickABoxGame() {
   // Handle box selection
   const selectBox = (idx: number) => {
     if (selectedBox !== null) return // Prevent selecting more than once
-    setSelectedBox(idx) // Set selected box
-    setRevealedPrize(boxPrizes[idx]) // Reveal the prize
+    setSelectedBox(idx) // Set selected box with the index of the clicked box
+    setRevealedPrize(boxPrizes[idx]) // Reveal the prize and save it
     setShowBubble(false) // Reset bubble
-    if (boxPrizes[idx].type === "prize") {
+    if (boxPrizes[idx].type === "prize") { //check if the selected box shows a real prize
       setShowConfetti(true) // Show confetti if it's a prize
-      if (winningAudioRef.current) {
-        winningAudioRef.current.currentTime = 0
-        winningAudioRef.current.play()
+      if (winningAudioRef.current) { //if prize
+        winningAudioRef.current.currentTime = 0 //reset audio to 0 and then 
+        winningAudioRef.current.play() //play sound
       }
-      setTimeout(() => {
+      setTimeout(() => { //delays showing the bubble
         setShowBubble(true) // Show the bubble after a short delay
       }, 400) // 400ms delay for bubble
       setTimeout(() => {
         setShowCoupon(true) // Show coupon popup after delay
       }, 3500) // 3.5 second delay for animation
     } else {
-      if (errorAudioRef.current) {
-        errorAudioRef.current.pause();
+      if (errorAudioRef.current) { //if box has a lose then 
+        errorAudioRef.current.pause(); 
         errorAudioRef.current.currentTime = 0;
         errorAudioRef.current.load();
         setTimeout(() => {
           errorAudioRef.current && errorAudioRef.current.play();
-        }, 50);
+        }, 50); //this sets a tiny delay may be a problem that needs to be fixed
       }
       setTimeout(() => {
-        setShowBubble(true) // Show the bubble after X disappears
+        setShowBubble(true) // Show the bubble
         // Do not show coupon yet
       }, 1000)
       setTimeout(() => {
@@ -127,16 +116,16 @@ export default function PickABoxGame() {
           numberOfPieces={400} // Amount of confetti
           onConfettiComplete={() => setShowConfetti(false)} // Hide after done
         />
-      )}
-      <audio ref={errorAudioRef} src="/error-2-36058.mp3" preload="auto" />
+      )} 
+      <audio ref={errorAudioRef} src="/error-2-36058.mp3" preload="auto" /> 
       <audio ref={winningAudioRef} src="/winning-218995.mp3" preload="auto" />
       {/* Logo and header */}
       <div className="text-center mb-10">
         <Image 
           src={config.logo} // Brand logo
           alt="Brand logo" 
-          width={120} 
-          height={60} 
+          width={120} //size of logo
+          height={60} //size of logo
           className="mx-auto mb-4" 
         />
         <h1 className={`text-4xl font-bold bg-gradient-to-r ${config.primaryColor} bg-clip-text text-transparent`}>
@@ -188,35 +177,35 @@ export default function PickABoxGame() {
                     onClick={() => selectBox(i)} // Handle box click
                   >
                     {/* Prize/try-again bubble above the box when selected */}
-                    {isSelected && showBubble && (
-                      <div className={`bubble-pop px-1 py-1 rounded-full font-bold shadow-lg ${bubbleColor} ${bubbleText}`}
+                    {isSelected && showBubble && ( //only starts if isSelected and showBubble are true 
+                      <div className={`bubble-pop px-1 py-1 rounded-full font-bold shadow-lg ${bubbleColor} ${bubbleText}`} //design of bubble
                         style={{
-                          minWidth: isMobile ? 20 : 100,
+                          minWidth: isMobile ? 20 : 100, //if mobile is true buuble is smaller
                           maxWidth: isMobile ? 80 : 200,
                           fontSize: isMobile ? 10 : 20,
-                          position: 'absolute',
-                          top: isMobile ? '6px' : '10px',
+                          position: 'absolute', //positioning of bubble
+                          top: isMobile ? '6px' : '10px', //appears above the box 
                           ...(isMobile
                             ? { left: 0, right: 0, margin: '0 auto', transform: 'translateY(0)' }
-                            : { left: '50%', transform: 'translateX(-50%) translateY(0)' }
+                            : { left: '50%', transform: 'translateX(-50%) translateY(0)' } //perfect centering 
                           ),
-                          zIndex: 2
-                        }}
+                          zIndex: 2 //makes sure it layers above other elements like the box if it overlaps
+                        }} //inside the box u have the icon and the title from the brand-config page
                       >
-                        <span className="text-2xl">{prize.icon}</span> {prize.title}
+                        <span className="text-2xl">{prize.icon}</span> {prize.title} 
                       </div>
                     )}
                     {/* Lottie animation for box (paused if not selected, plays if selected) */}
-                    <div style={{ position: 'relative', zIndex: 1 }}>
-                      <Lottie 
-                        key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox
-                        animationData={openBOX} 
-                        loop={false} 
+                    <div style={{ position: 'relative', zIndex: 1 }}> 
+                      <Lottie // Lottie renders a lottie animation, zIndex: 1 places it above background but behind the bubble
+                        key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox key helps identify which animation needs to be refreshed
+                        animationData={openBOX} //points to the imported JSON file
+                        loop={false}  //animation only plays ONCE
                         autoplay={isSelected} // Only play if selected
-                        style={isSelected
-                          ? { width: isMobile ? 90 : 165, height: isMobile ? 90 : 165, margin: "0 auto", transform: "scale(1.2)" }
-                          : { width: isMobile ? 80 : 155, height: isMobile ? 80 : 155, margin: "0 auto" }
-                        }
+                        style={isSelected //if box is selected
+                          ? { width: isMobile ? 90 : 165, height: isMobile ? 90 : 165, margin: "0 auto", transform: "scale(1.2)" } // make it bigger and transform makes it pop more
+                          : { width: isMobile ? 80 : 155, height: isMobile ? 80 : 155, margin: "0 auto" } //if unselected make it smaller also first option is mobile if not then desktop is bigger and margin 0 centers it
+                        } 
                       />
                     </div>
                   </div>

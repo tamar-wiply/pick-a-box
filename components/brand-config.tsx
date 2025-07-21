@@ -92,7 +92,7 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
     {
       id: 4,
       type: "prize",
-      title: "Exclusive ffer use promo code SHOPNOW",
+      title: "Exclusive offer use promo code SHOPNOW",
       value: "HIGH",
       icon: "⭐",
     },
