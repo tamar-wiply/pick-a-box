@@ -128,14 +128,14 @@ export default function PickABoxGame() {
           height={60} //size of logo
           className="mx-auto mb-4" 
         />
-        <h1 className={`text-4xl font-bold bg-gradient-to-r ${config.primaryColor} bg-clip-text text-transparent`}>
+        <h1 className={`playful-title text-2xl font-bold bg-gradient-to-r ${config.primaryColor} bg-clip-text text-transparent`}>
           {config.text.gameTitle} {/* Game title from config */}
         </h1>
-        <p className="text-gray-600 mt-2">{config.text.subtitle}</p> {/* Subtitle from config */}
+       
       </div>
 
       {/* Game area background and card */}
-      <div className={`shadow-xl rounded-3xl p-8 w-full max-w-4xl text-center ${config.gameAreaBg}`}>
+      <div className={`w-full max-w-4xl text-center`}>
         {/* Waiting state: show start button and instructions */}
         {gameState === "waiting" && (
           <>
@@ -154,7 +154,7 @@ export default function PickABoxGame() {
         {/* Playing state: show boxes */}
         {gameState === "playing" && (
           <>
-            <h2 className={`text-xl font-semibold mb-6 ${config.textColor}`}>{config.text.pickTitle}</h2> {/* Pick a box title */}
+            <h2 className={`bounce-text text-2xl font-semibold mb-4 ${config.textColor}`}>{config.text.pickTitle}</h2> {/* Pick a box title */}
             <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${numBoxes} gap-4`}>
               {/* Render each box */}
               {boxPrizes.map((prize, i) => {
@@ -169,43 +169,77 @@ export default function PickABoxGame() {
                 return (
                   <div
                     key={i} // Unique key
-                    className={`relative cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
-                    bg-gradient-to-br ${config.secondaryColor} hover:scale-105
+                    className={`relative box-glow cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
+                    hover:scale-105
                     ${isSelected ? "ring-4 ring-purple-400" : ""}
                     ${selectedBox === null ? "rocking-box" : ""}
                   `}
                     onClick={() => selectBox(i)} // Handle box click
                   >
                     {/* Prize/try-again bubble above the box when selected */}
-                    {isSelected && showBubble && ( //only starts if isSelected and showBubble are true 
-                      <div className={`bubble-pop px-1 py-1 rounded-full font-bold shadow-lg ${bubbleColor} ${bubbleText}`} //design of bubble
-                        style={{
-                          minWidth: isMobile ? 20 : 100, //if mobile is true buuble is smaller
-                          maxWidth: isMobile ? 80 : 200,
-                          fontSize: isMobile ? 10 : 20,
-                          position: 'absolute', //positioning of bubble
-                          top: isMobile ? '6px' : '10px', //appears above the box 
-                          ...(isMobile
-                            ? { left: 0, right: 0, margin: '0 auto', transform: 'translateY(0)' }
-                            : { left: '50%', transform: 'translateX(-50%) translateY(0)' } //perfect centering 
-                          ),
-                          zIndex: 2 //makes sure it layers above other elements like the box if it overlaps
-                        }} //inside the box u have the icon and the title from the brand-config page
-                      >
-                        <span className="text-2xl">{prize.icon}</span> {prize.title} 
-                      </div>
-                    )}
+                    {isSelected && showBubble && (
+  <div
+    style={{
+      position: 'absolute',
+      top: isMobile ? '6px' : '10px',
+      left: isMobile ? 0 : '50%',
+      right: isMobile ? 0 : undefined,
+      margin: isMobile ? '0 auto' : undefined,
+      transform: isMobile ? 'translateY(0)' : 'translateX(-50%) translateY(0)',
+      zIndex: 2,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: isMobile ? 56 : 120,
+      height: isMobile ? 56 : 120,
+      pointerEvents: 'none',
+    }}
+  >
+    {prize.image && (
+      <Image
+        src={prize.image}
+        alt={prize.title}
+        width={isMobile ? 56 : 200}
+        height={isMobile ? 56 : 200}
+        className="inline-block align-middle"
+        style={{
+          verticalAlign: 'middle',
+          position: 'relative',
+          zIndex: 2,
+          filter: 'drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 32px #fbbf24)'
+        }}
+      />
+    )}
+  </div>
+)}
                     {/* Lottie animation for box (paused if not selected, plays if selected) */}
                     <div style={{ position: 'relative', zIndex: 1 }}> 
-                      <Lottie // Lottie renders a lottie animation, zIndex: 1 places it above background but behind the bubble
-                        key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox key helps identify which animation needs to be refreshed
-                        animationData={openBOX} //points to the imported JSON file
-                        loop={false}  //animation only plays ONCE
+                      <Lottie 
+                        key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox
+                        animationData={openBOX} 
+                        loop={false} 
                         autoplay={isSelected} // Only play if selected
-                        style={isSelected //if box is selected
-                          ? { width: isMobile ? 90 : 165, height: isMobile ? 90 : 165, margin: "0 auto", transform: "scale(1.2)" } // make it bigger and transform makes it pop more
-                          : { width: isMobile ? 80 : 155, height: isMobile ? 80 : 155, margin: "0 auto" } //if unselected make it smaller also first option is mobile if not then desktop is bigger and margin 0 centers it
-                        } 
+                        style={isSelected
+                          ? { width: isMobile ? 260 : 420, height: isMobile ? 260 : 420, margin: "0 auto", transform: "scale(1.2)" }
+                          : { width: isMobile ? 260 : 420, height: isMobile ? 260 : 420, margin: "0 auto" }
+                        }
+                      />
+                      <Image
+                        src={config.logo}
+                        alt="Box Logo"
+                        width={isMobile ? 32 : 64}
+                        height={isMobile ? 32 : 64}
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: isMobile ? '60%' : '65%',
+                          transform: isMobile ? 'translate(-50%, -50%)' : 'translate(-60%, -50%)',
+                          opacity: 0.5,
+                          pointerEvents: 'none',
+                          filter: 'grayscale(1) contrast(1.2)'
+                        }}
+                        className="select-none"
+                        draggable={false}
                       />
                     </div>
                   </div>

@@ -10,7 +10,7 @@ interface CouponPopupProps {
     type: "prize" | "try-again"
     title: string
     //description: string
-    icon: string
+    image: string
   } | null
   shopUrl?: string 
 }
@@ -56,18 +56,30 @@ export function CouponPopup({ isOpen, onClose, prize, shopUrl = "https://www.wip
                       "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
                   }}
                 >
-                 <div className="text-5xl font-black mb-2">
-                  {prize.icon}
-                </div>
-                <div className="text-2xl font-bold">
-                   {prize.title}
-                 </div>
+                  <div className="mb-2 flex justify-center">
+                    <img
+                      src={prize.image}
+                      alt={prize.title}
+                      width={80}
+                      height={80}
+                      style={{ objectFit: 'contain', maxHeight: 80 }}
+                    />
+                  </div>
+                  <div className="text-2xl font-bold">
+                    {prize.title}
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="py-8">
-                <div className="text-6xl mb-4">{prize.icon}</div>
-                <div className="text-xl font-semibold text-gray-700">{prize.title}</div>
+              <div className="py-8 flex flex-col items-center">
+                <img
+                  src={prize.image}
+                  alt={prize.title}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: 'contain', maxHeight: 80 }}
+                />
+                <div className="text-xl font-semibold text-gray-700 mt-2">{prize.title}</div>
               </div>
             )}
           </div>

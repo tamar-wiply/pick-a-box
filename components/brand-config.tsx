@@ -15,7 +15,7 @@ export interface BrandConfig {
   gameAreaBg: string; //class string for the style of background
   text: { //holds all text contect shown in the games UI
   gameTitle: string; 
-  subtitle: string;
+  //subtitle: string;
   readyTitle: string;
   readyDescription: string;
   startButton: string;
@@ -35,6 +35,7 @@ export interface Prize {
  // description: string
   value: "HIGH" | "MEDIUM" | "LOW" //value for wieghted probability 
   icon: string //emoji or image presenting the prize 
+  image:string
 }
 
 export interface ProbabilityWeights { //controls the relative chance of a rpize being selected
@@ -56,7 +57,7 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
   gameAreaBg: "bg-indigo-300 bg-opacity-80", // game area background like where the boxes are
   text: { //change any text here to customize for a specifc client
     gameTitle: "Pick-a-Box Game", //title
-    subtitle: "Choose your box!",  
+    //subtitle: "Choose your box!",  
     readyTitle: "Ready to Play?",
     readyDescription: "Click start to reveal {numBoxes} mystery boxes. Pick one to see your prize!",
     startButton: "Start Game",
@@ -71,30 +72,34 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
     {
       id: 1, //pirze #1
       type: "prize", //prize
-      title: "20% Off Coupon", //title for prize or loss
+      title: "20% Off Coupon Code", //title for prize or loss
       value: "LOW", //weight
       icon: "🎟️", //can change logo based on brand
+      image: "/prizes/shoppingCart.png",
     },
     {
       id: 2,
       type: "prize",
-      title: "Free Shipping",
+      title: "Buy one Get two Free pairs of earrings",
       value: "MEDIUM",
       icon: "🚚",
+      image: "/prizes/jewl.png",
     },
     {
       id: 3,
       type: "prize",
-      title: "15$ off",
+      title: "Buy one get one 50% off any pair of Jeans",
       value: "HIGH",
       icon: "🎁",
+      image: "/prizes/jeanss.png",
     },
     {
       id: 4,
       type: "prize",
-      title: "Exclusive offer use promo code SHOPNOW",
+      title: "25% off any frangrance",
       value: "HIGH",
       icon: "⭐",
+      image: "/prizes/perfumeee.png",
     },
     {
       id: 5,
@@ -102,13 +107,15 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       title: "Try Again Tomorrow!",
       value: "MEDIUM",
       icon: "🔄",
+      image: "/prizes/TRY.png",
     },
     {
       id: 6,
       type: "try-again",
-      title: "Not This Time",
+      title: "Sorry unlucky pick! Try Again!",
       value: "LOW",
       icon: "😈",
+      image: "/prizes/RedX.png",
     },
   ],
   probabilityWeights: { HIGH: 1, MEDIUM: 3, LOW: 6 },//used to bias of the random selection 
