@@ -199,8 +199,8 @@ export default function PickABoxGame() {
       <Image
         src={prize.image}
         alt={prize.title}
-        width={isMobile ? 56 : 200}
-        height={isMobile ? 56 : 200}
+        width={isMobile ? 85 : 200}
+        height={isMobile ? 85 : 200}
         className="inline-block align-middle"
         style={{
           verticalAlign: 'middle',
@@ -220,8 +220,8 @@ export default function PickABoxGame() {
                         loop={false} 
                         autoplay={isSelected} // Only play if selected
                         style={isSelected
-                          ? { width: isMobile ? 260 : 420, height: isMobile ? 260 : 420, margin: "0 auto", transform: "scale(1.2)" }
-                          : { width: isMobile ? 260 : 420, height: isMobile ? 260 : 420, margin: "0 auto" }
+                          ? { width: isMobile ? 250 : 420, height: isMobile ? 250 : 420, margin: "0 auto", transform: "scale(1.2)" }
+                          : { width: isMobile ? 250 : 420, height: isMobile ? 250 : 420, margin: "0 auto" }
                         }
                       />
                       <Image
