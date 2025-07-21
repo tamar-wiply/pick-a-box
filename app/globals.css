@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
+/* Root Theme Variables customs for light and dark mode */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
+/* Inline custom theme for Tailwind */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -12,6 +14,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*  Dark Mode Support  */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +22,54 @@
   }
 }
 
+/*  Base Styles */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  
+  font-family: "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+
+
+.bubble-pop {
+  animation: bubble-pop-up 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes bubble-pop-up {
+  0% { opacity: 0; transform: translateX(-50%) translateY(30px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Rocking animation for boxes before selection */
+.rocking-box {
+  animation: rock 3s infinite ease-in-out;
+  transform-origin: 50% 80%;
+}
+@keyframes rock {
+  0% { transform: rotate(-6deg); }
+  20% { transform: rotate(6deg); }
+  40% { transform: rotate(-4deg); }
+  60% { transform: rotate(4deg); }
+  80% { transform: rotate(-2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Bubble pop animation for prize/loss bubble */
+/* On mobile, animate only translateY so the bubble slides straight up from the box (no X movement) */
+@media (max-width: 767px) {
+  .bubble-pop {
+    animation: bubble-pop-up-mobile 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes bubble-pop-up-mobile {
+    0% { opacity: 0; transform: translateY(30px);}
+    100% { opacity: 1; transform: translateY(0);}
+  }
+}
+/* On desktop, animate both translateX(-50%) for centering and translateY for the pop effect */
+@media (min-width: 768px) {
+  .bubble-pop {
+    animation: bubble-pop-up 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes bubble-pop-up {
+    0% { opacity: 0; transform: translateX(-50%) translateY(30px);}
+    100% { opacity: 1; transform: translateX(-50%) translateY(0);}
+  }
 }
