@@ -23,20 +23,11 @@
 }
 
 /*  Base Styles */
-body {
-  
-  font-family: "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+body, html {
+  background-image: none !important;
+  background: linear-gradient(to bottom right, #a7f0eb, #b4c6f7) !important;
 }
 
-
-
-.bubble-pop {
-  animation: bubble-pop-up 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes bubble-pop-up {
-  0% { opacity: 0; transform: translateX(-50%) translateY(30px); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
 
 /* Rocking animation for boxes before selection */
 .rocking-box {
@@ -52,17 +43,6 @@ body {
   100% { transform: rotate(0deg); }
 }
 
-/* Bubble pop animation for prize/loss bubble */
-/* On mobile, animate only translateY so the bubble slides straight up from the box (no X movement) */
-@media (max-width: 767px) {
-  .bubble-pop {
-    animation: bubble-pop-up-mobile 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes bubble-pop-up-mobile {
-    0% { opacity: 0; transform: translateY(30px);}
-    100% { opacity: 1; transform: translateY(0);}
-  }
-}
 /* On desktop, animate both translateX(-50%) for centering and translateY for the pop effect */
 @media (min-width: 768px) {
   .bubble-pop {
@@ -80,12 +60,6 @@ body {
   transition: box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Playful title font - use only Luckiest Guy for a more playful look */
-.playful-title {
-  font-family: 'Luckiest Guy', cursive, sans-serif;
-  letter-spacing: 1px;
-}
-
 /* Bounce animation for Pick a Box! heading */
 .bounce-text {
   animation: bounce-text 1.2s infinite alternate cubic-bezier(0.22, 1, 0.36, 1);
@@ -97,6 +71,3 @@ body {
   60% { transform: translateY(0); }
   100% { transform: translateY(-4px) scale(1.04); }
 }
-
-/* Import Google Fonts for Bungee and Luckiest Guy */
-@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Luckiest+Guy&display=swap');

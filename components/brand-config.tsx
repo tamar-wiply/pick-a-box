@@ -4,7 +4,6 @@
 export interface BrandConfig {
   name: string //brand name 
   primaryColor: string //theme color
-  secondaryColor: string //theme color
   accentColor: string //theme color
   backgroundColor: string //theme color
   textColor: string //theme color
@@ -12,15 +11,13 @@ export interface BrandConfig {
   boxImage: string //path or Url to JSON animation 
   prizes: Prize[] //list of prize objects
   probabilityWeights: ProbabilityWeights //determins how likely are different prize values
-  gameAreaBg: string; //class string for the style of background
+  //gameAreaBg: string; //class string for the style of background
   text: { //holds all text contect shown in the games UI
   gameTitle: string; 
-  //subtitle: string;
   readyTitle: string;
   readyDescription: string;
   startButton: string;
   pickTitle: string;
-  poweredBy: string;
   };
   boxCount: { //defines how many boxes should be on mobile or desktop
     desktop: number;
@@ -48,21 +45,20 @@ export interface ProbabilityWeights { //controls the relative chance of a rpize 
 export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult of wiply brand
   name: "Wiply Demo",
   primaryColor: "from-purple-500 to-indigo-600", // button for Start game
-  secondaryColor: "from-purple-200 to-blue-200", // box front gradient
   accentColor: "from-purple-600 to-violet-600", // not directly used, keep for future
-  backgroundColor: "bg-gradient-to-br from-green-100 to-indigo-300", // main background
+  backgroundColor: "bg-gradient-to-br from-green-300 to-indigo-400", // main background
   textColor: "text-purple-700", // main header text
   logo: "/WiplyLogo.png", //brand logo
-  boxImage: "/mysteryBOX.webp", //box image
-  gameAreaBg: "bg-indigo-300 bg-opacity-80", // game area background like where the boxes are
+  boxImage: "/placeholder.png", //box image if user wants to use an image instead of animation but in this case not used. 
+  //gameAreaBg: "bg-indigo-300 bg-opacity-80", // game area background like where the boxes are
   text: { //change any text here to customize for a specifc client
     gameTitle: "Pick-a-Box Game", //title
     //subtitle: "Choose your box!",  
-    readyTitle: "Ready to Play?",
-    readyDescription: "Click start to reveal {numBoxes} mystery boxes. Pick one to see your prize!",
+    readyTitle: "Pick-a-Box Game",
+    readyDescription: "Click start game to reveal {numBoxes} mystery boxes!",
     startButton: "Start Game",
-    pickTitle: "Pick a Box!",
-    poweredBy: "Powered by Wiply Demo • Demo for client campaigns",
+    pickTitle: "Choose a box!",
+    //poweredBy: "Powered by Wiply",
   }, 
   boxCount: { //boxcount setting
     desktop: 6,

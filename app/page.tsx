@@ -8,6 +8,7 @@ import { DEFAULT_BRAND_CONFIG } from "@/components/brand-config"
 import ReactConfetti from "react-confetti"
 import Lottie from "lottie-react"
 import openBOX from "@/components/openBOX.json"
+import questionAnim from "@/components/question.json"
 
 function useIsMobile() { //react hook that helps know when the screen is mobile size
   const [isMobile, setIsMobile] = useState(false) //a boolean that tracks if the function is mobile or not setIsMobile is what updates and its set to false right now
@@ -118,128 +119,165 @@ export default function PickABoxGame() {
         />
       )} 
       <audio ref={errorAudioRef} src="/error-2-36058.mp3" preload="auto" /> 
-      <audio ref={winningAudioRef} src="/winning-218995.mp3" preload="auto" />
+      <audio ref={winningAudioRef} src="/winner.mp3" preload="auto" />
       {/* Logo and header */}
-      <div className="text-center mb-10">
-        <Image 
-          src={config.logo} // Brand logo
-          alt="Brand logo" 
-          width={120} //size of logo
-          height={60} //size of logo
-          className="mx-auto mb-4" 
-        />
-        <h1 className={`playful-title text-2xl font-bold bg-gradient-to-r ${config.primaryColor} bg-clip-text text-transparent`}>
-          {config.text.gameTitle} {/* Game title from config */}
-        </h1>
-       
-      </div>
-
-      {/* Game area background and card */}
-      <div className={`w-full max-w-4xl text-center`}>
-        {/* Waiting state: show start button and instructions */}
-        {gameState === "waiting" && (
-          <>
+      {gameState === "waiting" && (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <div className="text-center mb-10 relative z-10">
+            <Image src={config.logo} alt="Brand logo" width={120} height={60} className="mx-auto mb-4" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent">
+              {config.text.gameTitle}
+            </h1>
+          </div>
+          {/* Game area background and card */}
+          <div className={`w-full max-w-4xl text-center`}>
+            {/* Waiting state: show start button and instructions */}
             <Gift className="w-16 h-16 mx-auto text-purple-400 mb-4" /> {/* Gift icon */}
-            <h2 className="text-2xl font-semibold text-indigo-700 mb-4">{config.text.readyTitle}</h2> {/* Ready title */}
+            <h2 className="text-2xl font-semibold text-indigo-700 mb-4">{config.text.gameTitle}</h2> {/* Ready title */}
             <p className="text-gray-600 mb-6">{config.text.readyDescription.replace("{numBoxes}", numBoxes.toString())}</p> {/* Ready description */}
             <button
-              onClick={startGame} // Start the game
-              className={`bg-gradient-to-r ${config.primaryColor} hover:opacity-90 text-white font-semibold px-8 py-3 rounded-full transition`}
+              onClick={startGame} // Start the game button, made to bounce color purple into indigo, with a hover over with cursor it goeds lighter to indicate to click it. 
+              className={`bounce-text bg-gradient-to-r ${config.primaryColor} hover:opacity-70 text-white font-semibold px-8 py-3 rounded-full transition`}
             >
               {config.text.startButton} {/* Start button text */}
             </button>
-          </>
-        )}
+          </div>
+        </div>
+      )}
 
-        {/* Playing state: show boxes */}
-        {gameState === "playing" && (
-          <>
-            <h2 className={`bounce-text text-2xl font-semibold mb-4 ${config.textColor}`}>{config.text.pickTitle}</h2> {/* Pick a box title */}
-            <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${numBoxes} gap-4`}>
-              {/* Render each box */}
-              {boxPrizes.map((prize, i) => {
-                // Determine if this box is selected
-                const isSelected = selectedBox === i
-                // Determine if this is a win or try again
-                const isWin = prize.type === "prize"
-                // Bubble color based on prize type
-                const bubbleColor = isWin ? "bg-green-500" : "bg-red-500"
-                // Bubble text color
-                const bubbleText = isWin ? "text-white" : "text-white"
-                return (
-                  <div
-                    key={i} // Unique key
-                    className={`relative box-glow cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
-                    hover:scale-105
-                    ${isSelected ? "ring-4 ring-purple-400" : ""}
-                    ${selectedBox === null ? "rocking-box" : ""}
-                  `}
-                    onClick={() => selectBox(i)} // Handle box click
-                  >
-                    {/* Prize/try-again bubble above the box when selected */}
-                    {isSelected && showBubble && (
-  <div
-    style={{
-      position: 'absolute',
-      top: isMobile ? '6px' : '10px',
-      left: isMobile ? 0 : '50%',
-      right: isMobile ? 0 : undefined,
-      margin: isMobile ? '0 auto' : undefined,
-      transform: isMobile ? 'translateY(0)' : 'translateX(-50%) translateY(0)',
-      zIndex: 2,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: isMobile ? 56 : 120,
-      height: isMobile ? 56 : 120,
-      pointerEvents: 'none',
-    }}
-  >
-    {prize.image && (
-      <Image
-        src={prize.image}
-        alt={prize.title}
-        width={isMobile ? 85 : 200}
-        height={isMobile ? 85 : 200}
-        className="inline-block align-middle"
-        style={{
-          verticalAlign: 'middle',
-          position: 'relative',
-          zIndex: 2,
-          filter: 'drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 32px #fbbf24)'
-        }}
-      />
-    )}
-  </div>
+      {/* Playing state: show boxes */}
+      {gameState === "playing" && (
+        <>
+          {/* Dense, dark indigo question marks for the game screen only */}
+          {/* Indigo-900 */}
+          {isMobile ? (
+            <>
+              <div style={{ position: 'fixed', top: '10%', left: '5%', fontSize: '2.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '50%', right: '10%', fontSize: '2.2rem', color: '#3730a3', opacity: 0.22, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '40%', left: '60%', fontSize: '2.8rem', color: '#312e81', opacity: 0.18, transform: 'rotate(12deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '80%', right: '7%', fontSize: '2.8rem', color: '#312e81', opacity: 0.33, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '38%', left: '13%', fontSize: '3.6rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '30%', right: '1%', fontSize: '2.3rem', color: '#3730a3', opacity: 0.31, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '8%', left: '60%', fontSize: '3.8rem', color: '#312e81', opacity: 0.27, transform: 'rotate(15deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '83%', left: '20%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.35, transform: 'rotate(25deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '90%', right: '35%', fontSize: '2.5rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '53%', left: '30%', fontSize: '2.2rem', color: '#312e81', opacity: 0.30, transform: 'rotate(3deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '60%', left: '5%', fontSize: '1.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '8%', right: '5%', fontSize: '2.1rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '6%', left: '22%', fontSize: '2.0rem', color: '#312e81', opacity: 0.30, transform: 'rotate(18deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '93%', left: '7%', fontSize: '2.0rem', color: '#312e81', opacity: 0.30, transform: 'rotate(-18deg)', zIndex: 0 }}>?</div>
+            </>
+          ) : (
+            <>
+              <div style={{ position: 'fixed', top: '8%', left: '3%', fontSize: '4.5rem', color: '#312e81', opacity: 0.22, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '55%', left: '7%', fontSize: '3.2rem', color: '#312e81', opacity: 0.30, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '25%', right: '40%', fontSize: '5.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(15deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '75%', right: '7%', fontSize: '2.8rem', color: '#312e81', opacity: 0.33, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '38%', left: '13%', fontSize: '3.8rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '85%', left: '15%', fontSize: '5rem', color: '#312e81', opacity: 0.20, transform: 'rotate(12deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '10%', right: '13%', fontSize: '4.2rem', color: '#312e81', opacity: 0.31, transform: 'rotate(7deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '90%', right: '15%', fontSize: '5rem', color: '#312e81', opacity: 0.20, transform: 'rotate(-14deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '80%', right: '75%', fontSize: '4.1rem', color: '#312e81', opacity: 0.20, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
+              {/* Indigo-800 */}
+              <div style={{ position: 'fixed', top: '15%', left: '20%', fontSize: '2.8rem', color: '#3730a3', opacity: 0.34, transform: 'rotate(-12deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '60%', left: '25%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.22, transform: 'rotate(8deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '30%', right: '10%', fontSize: '4.1rem', color: '#3730a3', opacity: 0.20, transform: 'rotate(11deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '30%', right: '30%', fontSize: '2.3rem', color: '#3730a3', opacity: 0.31, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '60%', left: '60%', fontSize: '5rem', color: '#312e81', opacity: 0.27, transform: 'rotate(0deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '10%', right: '55%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.30, transform: 'rotate(5deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '90%', left: '45%', fontSize: '2.8rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-5deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '70%', left: '40%', fontSize: '2.5rem', color: '#3730a3', opacity: 0.35, transform: 'rotate(-9deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '40%', right: '55%', fontSize: '2.5rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-5deg)', zIndex: 0 }}>?</div>
+              <div style={{ position: 'fixed', top: '20%', right: '30%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
+            </>
+          )}
+          <h2 className={`bounce-text text-2xl font-semibold mb-4 ${config.textColor}`}>{config.text.pickTitle}</h2> {/* Pick a box title */}
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${numBoxes} gap-4`}>
+            {/* Render each box */}
+            {boxPrizes.map((prize, i) => {
+              // Determine if this box is selected
+              const isSelected = selectedBox === i
+              // Determine if this is a win or try again
+              const isWin = prize.type === "prize"
+              // Bubble color based on prize type
+              //const bubbleColor = isWin ? "bg-green-500" : "bg-red-500"
+              // Bubble text color
+              //const bubbleText = isWin ? "text-white" : "text-white"
+              return (
+                <div
+                  key={i} // Unique key
+                  className={`relative box-glow cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
+                  hover:scale-105 
+                  ${isSelected ? "ring-4 ring-purple-400" : ""}
+                  ${selectedBox === null ? "rocking-box" : ""} 
+                `} //makes the box glow when the cursor points onto it with the color purple. 
+                  onClick={() => selectBox(i)} // Handle box click
+                >
+                  {/* Prize/try-again bubble above the box when selected */}
+                  {isSelected && showBubble && (
+    <div 
+      style={{ //style defines an object in JavaScript
+        position: 'absolute',
+        top: isMobile ? '6px' : '10px', //6px for mobile and 10px for desktop
+        left: isMobile ? 0 : '50%', //on mobile its 0 and desktop 50%
+        right: isMobile ? 0 : undefined, //right side set to 0 so tells browser to extend from left to right and on desktop undefined so no right hand style 
+        margin: isMobile ? '0 auto' : undefined, // no horizontal centering for mobile, on desktop no marginal applied
+        transform: isMobile ? 'translateY(0)' : 'translateX(-50%) translateY(0)', //on deskstop tis translates the div 50% to the left which means it centers it
+        zIndex: 2, //means its pigmented above the background and boxes
+        display: 'flex', //uses flexbox to center 
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: isMobile ? 56 : 120, //
+        height: isMobile ? 56 : 120,
+        pointerEvents: 'none', //noninteractive
+      }}
+    >
+      {prize.image && ( // this is an if statment, if true then redener whats in the parenthesis, if false do not.
+        <Image //promotes lazy loading
+          src={prize.image} //the image
+          alt={prize.title}//if prize image does not load it uses prize title instead
+          //Note with Next.js you have to define height and width
+          width={isMobile ? 85 : 200} //on mobile its 85 width and desktop 200
+          height={isMobile ? 85 : 200}//on mobile 85 height and 200 on desktop
+          className="inline-block align-middle" //makes the image behave like inline text and centers in with align-middle
+          style={{ 
+            verticalAlign: 'middle', //ensures its vertically alligned with another image or text
+            position: 'relative',
+            zIndex: 2, //appears above other images with lowerzIndex
+            filter: 'drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 32px #fbbf24)' //this is the glowing drop shadows
+          }}
+        />
+      )}
+    </div> //closes the image component and the wrapping 
 )}
-                    {/* Lottie animation for box (paused if not selected, plays if selected) */}
-                    <div style={{ position: 'relative', zIndex: 1 }}> 
-                      <Lottie 
-                        key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox
-                        animationData={openBOX} 
-                        loop={false} 
-                        autoplay={isSelected} // Only play if selected
-                        style={isSelected
-                          ? { width: isMobile ? 250 : 420, height: isMobile ? 250 : 420, margin: "0 auto", transform: "scale(1.2)" }
-                          : { width: isMobile ? 250 : 420, height: isMobile ? 250 : 420, margin: "0 auto" }
-                        }
-                      />
-                      <Image
-                        src={config.logo}
-                        alt="Box Logo"
-                        width={isMobile ? 32 : 64}
-                        height={isMobile ? 32 : 64}
-                        style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: isMobile ? '60%' : '65%',
-                          transform: isMobile ? 'translate(-50%, -50%)' : 'translate(-60%, -50%)',
-                          opacity: 0.5,
-                          pointerEvents: 'none',
-                          filter: 'grayscale(1) contrast(1.2)'
-                        }}
+   {/* Lottie animation for box (paused if not selected, plays if selected) */}
+   <div style={{ position: 'relative', zIndex: 1 }}> 
+       <Lottie 
+         key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox, i=specifc box index, selectedbox is prob which tells which box is selected, so animation only plays when selectedBox===i means 
+         animationData={openBOX}  //type of Lottie animation that was imported, can be switched if a different animation is imported
+         loop={false} //only plays once and not repeated 
+         autoplay={isSelected} // Only play if selected
+         style={isSelected //if selected it gets a scale boost of 1.2 which makes the image slightly bigger
+            ? { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto", transform: "scale(1.2)" } //Box sizes
+            : { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto" } //Box sizes 
+               }
+                 />
+                  <Image
+                    src={config.logo} //overlays the logo above the box
+                    alt="Box Logo"
+                    width={isMobile ? 32 : 64} //logo size 
+                    height={isMobile ? 32 : 64} //logo size 
+                    style={{ 
+                    position: 'absolute', //placed relative to to parent container 
+                    top: '50%', //centered
+                    left: isMobile ? '60%' : '65%',
+                    transform: isMobile ? 'translate(-50%, -50%)' : 'translate(-60%, -50%)',
+                    opacity: 0.5, //fades logo
+                    pointerEvents: 'none', // none clickable
+                    filter: 'grayscale(1) contrast(1.2)' //makes it readable but not overpowering 
+                      }}
                         className="select-none"
-                        draggable={false}
+                        draggable={false} 
                       />
                     </div>
                   </div>
@@ -267,9 +305,6 @@ export default function PickABoxGame() {
           prize={revealedPrize} // Prize to show
         />
       </div>
-
-      {/* Footer text */}
-      <p className="mt-8 text-gray-400 text-sm">{config.text.poweredBy}</p>
-    </div>
+   // </div>
   )
 }
