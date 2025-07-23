@@ -11,13 +11,15 @@ export interface BrandConfig {
   boxImage: string //path or Url to JSON animation 
   prizes: Prize[] //list of prize objects
   probabilityWeights: ProbabilityWeights //determins how likely are different prize values
+  startScreenImage?: string; // Path to a friendly image or animation for the start screen
   //gameAreaBg: string; //class string for the style of background
   text: { //holds all text contect shown in the games UI
   gameTitle: string; 
-  readyTitle: string;
+  //readyTitle: string;
   readyDescription: string;
   startButton: string;
   pickTitle: string;
+  welcomeMessage?: string; // Friendly subtitle for the start screen
   };
   boxCount: { //defines how many boxes should be on mobile or desktop
     desktop: number;
@@ -44,21 +46,20 @@ export interface ProbabilityWeights { //controls the relative chance of a rpize 
 // Default Wiply-style configuration CAN BE CHANGED AND UPDATED TO ALLOCATE FOR OTHER CLIENTS
 export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult of wiply brand
   name: "Wiply Demo",
-  primaryColor: "from-purple-500 to-indigo-600", // button for Start game
+  primaryColor: "from-violet-700 to-violet-700", // button for Start game
   accentColor: "from-purple-600 to-violet-600", // not directly used, keep for future
-  backgroundColor: "bg-gradient-to-br from-green-300 to-indigo-400", // main background
-  textColor: "text-purple-700", // main header text
-  logo: "/WiplyLogo.png", //brand logo
+  backgroundColor: "bg-gradient-to-br from-sky-50 to-sky-50", // main background
+  textColor: "text-violet-700", // main header text
+  logo: "/wiply.png", //brand logo
   boxImage: "/placeholder.png", //box image if user wants to use an image instead of animation but in this case not used. 
+  startScreenImage: "/mysteryBOX.webp", // Use a fun, game-like image (replace with your asset)
   //gameAreaBg: "bg-indigo-300 bg-opacity-80", // game area background like where the boxes are
   text: { //change any text here to customize for a specifc client
-    gameTitle: "Pick-a-Box Game", //title
-    //subtitle: "Choose your box!",  
-    readyTitle: "Pick-a-Box Game",
-    readyDescription: "Click start game to reveal {numBoxes} mystery boxes!",
+    gameTitle: "Pick-a-Box Game",
+    readyDescription: "Ready to uncover a surprise? Click start and see what’s inside!",
     startButton: "Start Game",
     pickTitle: "Choose a box!",
-    //poweredBy: "Powered by Wiply",
+    welcomeMessage: "Ready to play? Pick a box and see what you win!", // Friendly subtitle
   }, 
   boxCount: { //boxcount setting
     desktop: 6,
@@ -85,7 +86,7 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       id: 3,
       type: "prize",
       title: "Buy one get one 50% off any pair of Jeans",
-      value: "HIGH",
+      value: "MEDIUM",
       icon: "🎁",
       image: "/prizes/jeanss.png",
     },

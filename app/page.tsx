@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
-import { Gift, XCircle } from "lucide-react"
 import { CouponPopup } from "@/components/couponCard"
 import { DEFAULT_BRAND_CONFIG } from "@/components/brand-config"
 import ReactConfetti from "react-confetti"
@@ -31,9 +30,12 @@ export default function PickABoxGame() {
   const [boxPrizes, setBoxPrizes] = useState<typeof config.prizes[0][]>([]) // The prizes assigned to each box for this round
   const [showCoupon, setShowCoupon] = useState(false) // Whether to show the coupon popup
   const [showConfetti, setShowConfetti] = useState(false) // Whether to show confetti animation
-  const [showBubble, setShowBubble] = useState(false)// Add a state to control when the bubble is shown
+  const [showPrizeFlyout, setShowPrizeFlyout] = useState(false);
+  const [flyoutStyle, setFlyoutStyle] = useState<any>(null);
+  const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
   const errorAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for error sound
   const winningAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for winning sound
+  const gameAreaRef = useRef<HTMLDivElement | null>(null);
 
   // Generate a random prize for a box, using the brand-config weights of high medium low
   const getRandomPrize = () => { //return random prize
@@ -57,39 +59,90 @@ export default function PickABoxGame() {
   }
 
   // Handle box selection
-  const selectBox = (idx: number) => {
-    if (selectedBox !== null) return // Prevent selecting more than once
-    setSelectedBox(idx) // Set selected box with the index of the clicked box
-    setRevealedPrize(boxPrizes[idx]) // Reveal the prize and save it
-    setShowBubble(false) // Reset bubble
-    if (boxPrizes[idx].type === "prize") { //check if the selected box shows a real prize
-      setShowConfetti(true) // Show confetti if it's a prize
-      if (winningAudioRef.current) { //if prize
-        winningAudioRef.current.currentTime = 0 //reset audio to 0 and then 
-        winningAudioRef.current.play() //play sound
-      }
-      setTimeout(() => { //delays showing the bubble
-        setShowBubble(true) // Show the bubble after a short delay
-      }, 400) // 400ms delay for bubble
+  const selectBox = (idx: number) => { //takes in an idx (the index of the box) handles the prize and animation 
+    if (selectedBox !== null) return; // Prevent selecting more than once
+    setSelectedBox(idx); // Set selected box with the index of the clicked box
+    setRevealedPrize(boxPrizes[idx]); // saves the image that was in the box, and saves it so the UI knows what image to show
+    // Get box position for flyout animation
+    const boxRect = boxRefs.current[idx]?.getBoundingClientRect(); //gets exact screen position and size of the clicked box
+    const areaRect = gameAreaRef.current?.getBoundingClientRect(); //gets the exact size of the game area which is used for calculating the center
+    // Calculate the center of the game area (or viewport fallback) adding window.scroll ensures it works when the user scrolls the page
+    const centerX = areaRect ? areaRect.left + areaRect.width / 2 + window.scrollX : window.innerWidth / 2 + window.scrollX; //centerX means horizontal center
+    const centerY = areaRect ? areaRect.top + areaRect.height / 2 + window.scrollY : window.innerHeight / 2 + window.scrollY; //centerY mean Vertical center
+    if (boxRect) { //only continue if the box position was found 
+      // setTimeout ensures we wait for the box opening animation (Lottie) to finish (e.g., 600ms)
+      // This ensures the image emerges only after the box is visually open
       setTimeout(() => {
-        setShowCoupon(true) // Show coupon popup after delay
-      }, 3500) // 3.5 second delay for animation
-    } else {
-      if (errorAudioRef.current) { //if box has a lose then 
-        errorAudioRef.current.pause(); 
-        errorAudioRef.current.currentTime = 0;
-        errorAudioRef.current.load();
+       
+        // Step 2: Show image at scale 0 (hidden) and translateY(30%) (pushed downward) (inside box, hidden)
+        
+        // The image starts hidden and slightly lower, as if inside the box
+        setFlyoutStyle({
+          position: 'fixed',
+          left: boxRect.left + boxRect.width / 2 + window.scrollX, // Center horizontally above the box
+          top: boxRect.top + 10 + window.scrollY, // Position just above the box
+          width: isMobile ? 85 : 200,
+          height: isMobile ? 85 : 200,
+          zIndex: 50,
+          pointerEvents: 'none',
+          transform: 'translate(-50%, 30%) scale(0)', // Hidden and lower (inside box)
+          transition: 'none', // No animation yet
+        });
+        setShowPrizeFlyout(true); // Shows the prize image in DOM
+
+        // Step 3: Animate image to scale 1 and translateY(0) (emerge from box, 0.25s)
+        
+        // The image scales up and rises out of the box for a smooth "emerging" effect
         setTimeout(() => {
-          errorAudioRef.current && errorAudioRef.current.play();
-        }, 50); //this sets a tiny delay may be a problem that needs to be fixed
+          setFlyoutStyle((style: any) => ({
+            ...style,
+            transform: 'translate(-50%, 0) scale(1)', // Move up and scale to normal size
+            transition: 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)', // Smooth pop/emerge animation style
+          }));
+        }, 10); // Short delay to trigger transition
+
+        // Step 4: Pause for 0.25s at full size, then fly to center
+
+        // After the image is fully out, pause briefly before flying out
+        setTimeout(() => {
+          setFlyoutStyle({
+            position: 'fixed',
+            left: centerX, // Center of game area (or viewport)
+            top: centerY,
+            width: isMobile ? 120 : 220,
+            height: isMobile ? 120 : 220,
+            zIndex: 50,
+            pointerEvents: 'none',
+            transform: 'translate(-50%, -50%) scale(1.8)', // Scale up as it flies out to 1.8x 
+            transition: 'all 1.2s cubic-bezier(0.22, 1, 0.36, 1)', // Smooth flyout for 1.2 seconds 
+          });
+        }, 501); // 0.5s pop + 0.01s buffer
+        
+        // Step 5: Hide the flyout and show the coupon after the animation completes after 1.76 seconds 
+
+        // After the flyout animation, hide the image and show the coupon popup
+        setTimeout(() => {
+          setShowPrizeFlyout(false);
+          setShowCoupon(true);
+        }, 2000); 
+      }, 600); // Wait for box opening animation
+      // Play confetti and sounds as before
+      if (boxPrizes[idx].type === "prize") { //if prize play confetti and win sound
+        setShowConfetti(true);
+        if (winningAudioRef.current) {
+          winningAudioRef.current.currentTime = 0;
+          winningAudioRef.current.play();
+        }
+      } else { //else play lose sound
+        if (errorAudioRef.current) {
+          errorAudioRef.current.pause();
+          errorAudioRef.current.currentTime = 0;
+          errorAudioRef.current.load();
+          setTimeout(() => {
+            errorAudioRef.current && errorAudioRef.current.play();
+          }, 50);
+        }
       }
-      setTimeout(() => {
-        setShowBubble(true) // Show the bubble
-        // Do not show coupon yet
-      }, 1000)
-      setTimeout(() => {
-        setShowCoupon(true) // Show coupon popup after bubble appears
-      }, 2500) // 2.5s after click (1s X + 1.5s bubble)
     }
   }
 
@@ -101,7 +154,6 @@ export default function PickABoxGame() {
     setGameState("waiting") // Reset to waiting
     setShowCoupon(false) // Hide coupon
     setShowConfetti(false) // Hide confetti
-    setShowBubble(false) // Hide bubble
   }, [numBoxes])
 
   // Render the game UI
@@ -111,7 +163,7 @@ export default function PickABoxGame() {
       {/* Show confetti animation if needed */}
       {showConfetti && (
         <ReactConfetti 
-          width={window.innerWidth} // Full width
+          width={window.innerWidth} // Full width of screen
           height={window.innerHeight} // Full height
           recycle={false} // Don't loop
           numberOfPieces={400} // Amount of confetti
@@ -123,18 +175,20 @@ export default function PickABoxGame() {
       {/* Logo and header */}
       {gameState === "waiting" && (
         <div className="flex flex-col items-center justify-center min-h-screen">
-          <div className="text-center mb-10 relative z-10">
-            <Image src={config.logo} alt="Brand logo" width={120} height={60} className="mx-auto mb-4" />
+          <div className="text-center mb-4 relative z-10">
+            <Image src={config.logo} alt="Brand logo" width={200} height={200} className="mx-auto mb-4" />
             <h1 className="text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent">
               {config.text.gameTitle}
             </h1>
           </div>
           {/* Game area background and card */}
           <div className={`w-full max-w-4xl text-center`}>
-            {/* Waiting state: show start button and instructions */}
-            <Gift className="w-16 h-16 mx-auto text-purple-400 mb-4" /> {/* Gift icon */}
-            <h2 className="text-2xl font-semibold text-indigo-700 mb-4">{config.text.gameTitle}</h2> {/* Ready title */}
-            <p className="text-gray-600 mb-6">{config.text.readyDescription.replace("{numBoxes}", numBoxes.toString())}</p> {/* Ready description */}
+            {/* Replace Gift icon with Lottie box animation */}
+            <div className="mx-auto mb-8" style={{ width: 120, height: 120 }}>
+              <Lottie animationData={openBOX} loop={true} autoplay={true} />
+            </div>
+            <h2 className="text-4xl font-bold text-indigo-700 mb-6">{config.text.gameTitle}</h2> {/* Ready title */}
+            <p className="text-gray-600 font-semibold mb-20">{config.text.readyDescription.replace("{numBoxes}", numBoxes.toString())}</p> {/* Ready description */}
             <button
               onClick={startGame} // Start the game button, made to bounce color purple into indigo, with a hover over with cursor it goeds lighter to indicate to click it. 
               className={`bounce-text bg-gradient-to-r ${config.primaryColor} hover:opacity-70 text-white font-semibold px-8 py-3 rounded-full transition`}
@@ -148,7 +202,7 @@ export default function PickABoxGame() {
       {/* Playing state: show boxes */}
       {gameState === "playing" && (
         <>
-          {/* Dense, dark indigo question marks for the game screen only */}
+          {/* Question marks for mobile screen only */}
           {/* Indigo-900 */}
           {isMobile ? (
             <>
@@ -169,6 +223,7 @@ export default function PickABoxGame() {
             </>
           ) : (
             <>
+            {/* question marks for desktop screen only*/ }
               <div style={{ position: 'fixed', top: '8%', left: '3%', fontSize: '4.5rem', color: '#312e81', opacity: 0.22, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
               <div style={{ position: 'fixed', top: '55%', left: '7%', fontSize: '3.2rem', color: '#312e81', opacity: 0.30, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
               <div style={{ position: 'fixed', top: '25%', right: '40%', fontSize: '5.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(15deg)', zIndex: 0 }}>?</div>
@@ -199,13 +254,10 @@ export default function PickABoxGame() {
               const isSelected = selectedBox === i
               // Determine if this is a win or try again
               const isWin = prize.type === "prize"
-              // Bubble color based on prize type
-              //const bubbleColor = isWin ? "bg-green-500" : "bg-red-500"
-              // Bubble text color
-              //const bubbleText = isWin ? "text-white" : "text-white"
               return (
                 <div
                   key={i} // Unique key
+                  ref={el => { boxRefs.current[i] = el; }}
                   className={`relative box-glow cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
                   hover:scale-105 
                   ${isSelected ? "ring-4 ring-purple-400" : ""}
@@ -213,98 +265,82 @@ export default function PickABoxGame() {
                 `} //makes the box glow when the cursor points onto it with the color purple. 
                   onClick={() => selectBox(i)} // Handle box click
                 >
-                  {/* Prize/try-again bubble above the box when selected */}
-                  {isSelected && showBubble && (
-    <div 
-      style={{ //style defines an object in JavaScript
-        position: 'absolute',
-        top: isMobile ? '6px' : '10px', //6px for mobile and 10px for desktop
-        left: isMobile ? 0 : '50%', //on mobile its 0 and desktop 50%
-        right: isMobile ? 0 : undefined, //right side set to 0 so tells browser to extend from left to right and on desktop undefined so no right hand style 
-        margin: isMobile ? '0 auto' : undefined, // no horizontal centering for mobile, on desktop no marginal applied
-        transform: isMobile ? 'translateY(0)' : 'translateX(-50%) translateY(0)', //on deskstop tis translates the div 50% to the left which means it centers it
-        zIndex: 2, //means its pigmented above the background and boxes
-        display: 'flex', //uses flexbox to center 
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: isMobile ? 56 : 120, //
-        height: isMobile ? 56 : 120,
-        pointerEvents: 'none', //noninteractive
-      }}
-    >
-      {prize.image && ( // this is an if statment, if true then redener whats in the parenthesis, if false do not.
-        <Image //promotes lazy loading
-          src={prize.image} //the image
-          alt={prize.title}//if prize image does not load it uses prize title instead
-          //Note with Next.js you have to define height and width
-          width={isMobile ? 85 : 200} //on mobile its 85 width and desktop 200
-          height={isMobile ? 85 : 200}//on mobile 85 height and 200 on desktop
-          className="inline-block align-middle" //makes the image behave like inline text and centers in with align-middle
-          style={{ 
-            verticalAlign: 'middle', //ensures its vertically alligned with another image or text
-            position: 'relative',
-            zIndex: 2, //appears above other images with lowerzIndex
-            filter: 'drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 32px #fbbf24)' //this is the glowing drop shadows
-          }}
-        />
-      )}
-    </div> //closes the image component and the wrapping 
-)}
-   {/* Lottie animation for box (paused if not selected, plays if selected) */}
-   <div style={{ position: 'relative', zIndex: 1 }}> 
-       <Lottie 
-         key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox, i=specifc box index, selectedbox is prob which tells which box is selected, so animation only plays when selectedBox===i means 
-         animationData={openBOX}  //type of Lottie animation that was imported, can be switched if a different animation is imported
-         loop={false} //only plays once and not repeated 
-         autoplay={isSelected} // Only play if selected
-         style={isSelected //if selected it gets a scale boost of 1.2 which makes the image slightly bigger
-            ? { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto", transform: "scale(1.2)" } //Box sizes
-            : { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto" } //Box sizes 
-               }
-                 />
-                  <Image
-                    src={config.logo} //overlays the logo above the box
-                    alt="Box Logo"
-                    width={isMobile ? 32 : 64} //logo size 
-                    height={isMobile ? 32 : 64} //logo size 
-                    style={{ 
-                    position: 'absolute', //placed relative to to parent container 
-                    top: '50%', //centered
-                    left: isMobile ? '60%' : '65%',
-                    transform: isMobile ? 'translate(-50%, -50%)' : 'translate(-60%, -50%)',
-                    opacity: 0.5, //fades logo
-                    pointerEvents: 'none', // none clickable
-                    filter: 'grayscale(1) contrast(1.2)' //makes it readable but not overpowering 
-                      }}
-                        className="select-none"
-                        draggable={false} 
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
+                  {/* Lottie animation for box (paused if not selected, plays if selected) */}
+                  <div style={{ position: 'relative', zIndex: 1 }}> 
+                      <Lottie 
+                        key={selectedBox === i ? `selected-${i}` : `closed-${i}`} // Only depend on selectedBox, i=specifc box index, selectedbox is prob which tells which box is selected, so animation only plays when selectedBox===i means 
+                        animationData={openBOX}  //type of Lottie animation that was imported, can be switched if a different animation is imported
+                        loop={false} //only plays once and not repeated 
+                        autoplay={isSelected} // Only play if selected
+                        style={isSelected //if selected it gets a scale boost of 1.2 which makes the image slightly bigger
+                           ? { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto", transform: "scale(1.2)" } //Box sizes
+                           : { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto" } //Box sizes 
+                              }
+                                />
+                                 <Image
+                                   src={config.logo} //overlays the logo above the box
+                                   alt="Box Logo"
+                                   width={isMobile ? 32 : 64} //logo size 
+                                   height={isMobile ? 32 : 64} //logo size 
+                                   style={{ 
+                                   position: 'absolute', //placed relative to to parent container 
+                                   top: '50%', //centered
+                                   left: isMobile ? '60%' : '65%',
+                                   transform: isMobile ? 'translate(-50%, -50%)' : 'translate(-60%, -50%)',
+                                   opacity: 0.5, //fades logo
+                                   pointerEvents: 'none', // none clickable
+                                   filter: 'grayscale(1) contrast(1.2)' //makes it readable but not overpowering 
+                                     }}
+                                       className="select-none"
+                                       draggable={false} 
+                                     />
+                                   </div>
+                                 </div>
+                               )
+                             })}
+                           </div>
+                         </>
+                       )}
 
-        {/* Coupon popup for prize/try again */}
-        <CouponPopup
-          isOpen={showCoupon} // Show/hide popup
-          onClose={() => {
-            setShowCoupon(false) // Hide popup
-            if (revealedPrize && revealedPrize.type === "try-again") {
-              setGameState("waiting") // Reset for try again
-              setSelectedBox(null)
-              setRevealedPrize(null)
-              setBoxPrizes([])
-              setShowConfetti(false)
-            } else {
-              setGameState("finished") // End game for win
-            }
-          }}
-          prize={revealedPrize} // Prize to show
-        />
-      </div>
-   // </div>
+                       {/* Coupon popup for prize/try again */}
+                       <CouponPopup
+                         isOpen={showCoupon} // Show/hide popup
+                         onClose={() => {
+                           setShowCoupon(false) // Hide popup
+                           if (revealedPrize && revealedPrize.type === "try-again") {
+                             setGameState("waiting") // Reset for try again
+                             setSelectedBox(null)
+                             setRevealedPrize(null)
+                             setBoxPrizes([])
+                             setShowConfetti(false)
+                           } else {
+                             setGameState("finished") // End game for win
+                           }
+                         }}
+                         prize={revealedPrize} // Prize to show
+                       />
+
+                       {/* Flyout prize image animation (from box to center, scaling up)
+                           - Rendered at the root of the game area, as the last child
+                           - Only render when showPrizeFlyout is true (animation is active)
+                           - Uses the selected prize image (revealedPrize?.image)
+                           - flyoutStyle controls the position and scaling for the animation
+                           - This image first appears above the box, pauses, then animates to the center
+                           - Only one flyout image is rendered at a time (for the selected box)
+                       */}
+                       {showPrizeFlyout && revealedPrize?.image && flyoutStyle && ( //only show flyout image when we in animation, there is an image toreveal and we have a position
+                         <div style={flyoutStyle}>
+                           <Image
+                             src={revealedPrize.image} //prize image URL
+                             alt={revealedPrize.title} //incase image does not show it shows title
+                             width={flyoutStyle.width} //same as defined in flyoutStyle
+                             height={flyoutStyle.height}//^^
+                             style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 32px #fbbf24)' }} //objectFit contained means the image fits in the box without streching and adds a glow around the image
+                             className="select-none" //prevents users from actually clicking on the image
+                             draggable={false} //nonedraggable 
+                           />
+                         </div>
+                       )}
+                     </div>
   )
 }
