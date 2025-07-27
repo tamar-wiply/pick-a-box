@@ -71,3 +71,9 @@ body, html {
   60% { transform: translateY(0); }
   100% { transform: translateY(-4px) scale(1.04); }
 }
+
+/* Optional: Custom style for ConfettiExplosion burst */
+.confetti-explosion-burst {
+  z-index: 9999;
+  pointer-events: none;
+}

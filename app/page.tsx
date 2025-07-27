@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { CouponPopup } from "@/components/couponCard"
 import { DEFAULT_BRAND_CONFIG } from "@/components/brand-config"
+import confetti from 'canvas-confetti'
 import ReactConfetti from "react-confetti"
 import Lottie from "lottie-react"
 import openBOX from "@/components/openBOX.json"
@@ -36,6 +37,7 @@ export default function PickABoxGame() {
   const errorAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for error sound
   const winningAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for winning sound
   const gameAreaRef = useRef<HTMLDivElement | null>(null);
+  const [showCenterConfetti, setShowCenterConfetti] = useState(false); // One-time burst confetti
 
   // Generate a random prize for a box, using the brand-config weights of high medium low
   const getRandomPrize = () => { //return random prize
@@ -116,19 +118,32 @@ export default function PickABoxGame() {
             transform: 'translate(-50%, -50%) scale(1.8)', // Scale up as it flies out to 1.8x 
             transition: 'all 1.2s cubic-bezier(0.22, 1, 0.36, 1)', // Smooth flyout for 1.2 seconds 
           });
+          // Trigger confetti burst 1.35 seconds after the image starts flying to the center (for prizes only)
+          if (boxPrizes[idx].type === "prize") {
+            setTimeout(() => {
+              confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'],
+              });
+            }, 1350); // Wait 1.35s after flyout animation starts
+          }
         }, 501); // 0.5s pop + 0.01s buffer
         
-        // Step 5: Hide the flyout and show the coupon after the animation completes after 1.76 seconds 
-
+        // Step 5: Hide the flyout and show the coupon after the animation completes
+        
         // After the flyout animation, hide the image and show the coupon popup
+        // For wins: wait for confetti burst to finish (4.5s total)
+        // For losses: shorter wait since no confetti (2.7s total)
+        const couponDelay = boxPrizes[idx].type === "prize" ? 4500 : 2700;
         setTimeout(() => {
           setShowPrizeFlyout(false);
           setShowCoupon(true);
-        }, 2000); 
+        }, couponDelay);
       }, 600); // Wait for box opening animation
-      // Play confetti and sounds as before
-      if (boxPrizes[idx].type === "prize") { //if prize play confetti and win sound
-        setShowConfetti(true);
+      // Play sounds as before
+      if (boxPrizes[idx].type === "prize") { //if prize play win sound
         if (winningAudioRef.current) {
           winningAudioRef.current.currentTime = 0;
           winningAudioRef.current.play();
@@ -156,20 +171,33 @@ export default function PickABoxGame() {
     setShowConfetti(false) // Hide confetti
   }, [numBoxes])
 
+  // Trigger background confetti when coupon shows for prizes
+  useEffect(() => {
+    if (showCoupon && revealedPrize?.type === "prize") {
+      setShowConfetti(true);
+    }
+  }, [showCoupon, revealedPrize]);
+
   // Render the game UI
   return (
     // Main background and layout
     <div className={`min-h-screen ${config.backgroundColor} flex flex-col items-center justify-center p-6`}>
-      {/* Show confetti animation if needed */}
-      {showConfetti && (
-        <ReactConfetti 
-          width={window.innerWidth} // Full width of screen
-          height={window.innerHeight} // Full height
-          recycle={false} // Don't loop
-          numberOfPieces={400} // Amount of confetti
-          onConfettiComplete={() => setShowConfetti(false)} // Hide after done
+      {/* One-time center confetti burst after flyout for prizes using canvas-confetti */}
+      {showCenterConfetti && (
+        <div style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999 }}>
+          {/* Canvas confetti is triggered via JavaScript, not rendered as component */}
+        </div>
+      )}
+      {/* Background confetti only when coupon is open and prize is a prize */}
+      {showConfetti && revealedPrize?.type === "prize" && (
+        <ReactConfetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={700}
+          onConfettiComplete={() => setShowConfetti(false)}
         />
-      )} 
+      )}
       <audio ref={errorAudioRef} src="/error-2-36058.mp3" preload="auto" /> 
       <audio ref={winningAudioRef} src="/winner.mp3" preload="auto" />
       {/* Logo and header */}
