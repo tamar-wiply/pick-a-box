@@ -8,7 +8,7 @@ import confetti from 'canvas-confetti'
 import ReactConfetti from "react-confetti"
 import Lottie from "lottie-react"
 import openBOX from "@/components/openBOX.json"
-import questionAnim from "@/components/question.json"
+
 
 function useIsMobile() { //react hook that helps know when the screen is mobile size
   const [isMobile, setIsMobile] = useState(false) //a boolean that tracks if the function is mobile or not setIsMobile is what updates and its set to false right now
@@ -32,12 +32,12 @@ export default function PickABoxGame() {
   const [showCoupon, setShowCoupon] = useState(false) // Whether to show the coupon popup
   const [showConfetti, setShowConfetti] = useState(false) // Whether to show confetti animation
   const [showPrizeFlyout, setShowPrizeFlyout] = useState(false);
-  const [flyoutStyle, setFlyoutStyle] = useState<any>(null);
+  const [flyoutStyle, setFlyoutStyle] = useState<React.CSSProperties | null>(null);
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
   const errorAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for error sound
   const winningAudioRef = useRef<HTMLAudioElement | null>(null) // Ref for winning sound
   const gameAreaRef = useRef<HTMLDivElement | null>(null);
-  const [showCenterConfetti, setShowCenterConfetti] = useState(false); // One-time burst confetti
+
 
   // Generate a random prize for a box, using the brand-config weights of high medium low
   const getRandomPrize = () => { //return random prize
@@ -96,7 +96,7 @@ export default function PickABoxGame() {
         
         // The image scales up and rises out of the box for a smooth "emerging" effect
         setTimeout(() => {
-          setFlyoutStyle((style: any) => ({
+          setFlyoutStyle((style: React.CSSProperties | null) => ({
             ...style,
             transform: 'translate(-50%, 0) scale(1)', // Move up and scale to normal size
             transition: 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)', // Smooth pop/emerge animation style
@@ -154,7 +154,9 @@ export default function PickABoxGame() {
           errorAudioRef.current.currentTime = 0;
           errorAudioRef.current.load();
           setTimeout(() => {
-            errorAudioRef.current && errorAudioRef.current.play();
+            if (errorAudioRef.current) {
+              errorAudioRef.current.play();
+            }
           }, 50);
         }
       }
@@ -182,12 +184,7 @@ export default function PickABoxGame() {
   return (
     // Main background and layout
     <div className={`min-h-screen ${config.backgroundColor} flex flex-col items-center justify-center p-6`}>
-      {/* One-time center confetti burst after flyout for prizes using canvas-confetti */}
-      {showCenterConfetti && (
-        <div style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999 }}>
-          {/* Canvas confetti is triggered via JavaScript, not rendered as component */}
-        </div>
-      )}
+
       {/* Background confetti only when coupon is open and prize is a prize */}
       {showConfetti && revealedPrize?.type === "prize" && (
         <ReactConfetti
@@ -281,7 +278,7 @@ export default function PickABoxGame() {
               // Determine if this box is selected
               const isSelected = selectedBox === i
               // Determine if this is a win or try again
-              const isWin = prize.type === "prize"
+
               return (
                 <div
                   key={i} // Unique key
@@ -361,8 +358,8 @@ export default function PickABoxGame() {
                            <Image
                              src={revealedPrize.image} //prize image URL
                              alt={revealedPrize.title} //incase image does not show it shows title
-                             width={flyoutStyle.width} //same as defined in flyoutStyle
-                             height={flyoutStyle.height}//^^
+                             width={Number(flyoutStyle.width)} //same as defined in flyoutStyle
+                             height={Number(flyoutStyle.height)}//^^
                              style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 32px #fbbf24)' }} //objectFit contained means the image fits in the box without streching and adds a glow around the image
                              className="select-none" //prevents users from actually clicking on the image
                              draggable={false} //nonedraggable 
