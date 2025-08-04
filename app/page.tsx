@@ -176,12 +176,22 @@ export default function PickABoxGame() {
     setBoxPrizes(Array(numBoxes).fill(null).map(getRandomPrize))
   }, []) // Empty dependency array means this runs once on mount
 
+  // Set audio volume on mount
+  useEffect(() => {
+    if (errorAudioRef.current) {
+      errorAudioRef.current.volume = 0.3 // 30% volume
+    }
+    if (winningAudioRef.current) {
+      winningAudioRef.current.volume = 0.3 // 30% volume
+    }
+  }, [])
+
 
 
   // Render the game UI
   return (
     // Main background and layout
-    <div className={`min-h-screen ${config.backgroundColor} flex flex-col items-center justify-center p-6 overflow-hidden fixed inset-0`} style={{ minHeight: '100vh', height: '100vh' }}>
+    <div className={`min-h-screen ${config.backgroundColor} flex flex-col items-center ${isMobile ? 'justify-start pt-20' : 'justify-center'} p-6 overflow-hidden fixed inset-0`} style={{ minHeight: '100vh', height: '100vh' }}>
 
 
       <audio ref={errorAudioRef} src="/error-2-36058.mp3" preload="auto" /> 
