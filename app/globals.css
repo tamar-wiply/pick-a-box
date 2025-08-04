@@ -26,6 +26,32 @@
 body, html {
   background-image: none !important;
   background: linear-gradient(to bottom right, #a7f0eb, #b4c6f7) !important;
+  height: 100vh;
+  min-height: 100vh;
+}
+
+/* Ensure proper viewport handling */
+#__next {
+  height: 100vh;
+  min-height: 100vh;
+}
+
+/* Mobile-specific styles to prevent scrolling */
+@media (max-width: 768px) {
+  body, html {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    touch-action: none;
+  }
+  
+  /* Handle different mobile viewport heights */
+  #__next {
+    height: 100vh;
+    min-height: 100vh;
+  }
 }
 
 
@@ -56,7 +82,7 @@ body, html {
 
 /* Glow effect for box on hover */
 .box-glow:hover {
-  box-shadow: 0 0 32px 8px #a78bfa, 0 0 0 4px #f472b6;
+  box-shadow: 0 0 32px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 

@@ -8,6 +8,10 @@ export interface BrandConfig {
   backgroundColor: string //theme color
   textColor: string //theme color
   logo: string //path to image logo
+  logoSize: { //logo size configuration
+    mobile: number;
+    desktop: number;
+  }
   boxImage: string //path or Url to JSON animation 
   prizes: Prize[] //list of prize objects
   probabilityWeights: ProbabilityWeights //determins how likely are different prize values
@@ -20,6 +24,7 @@ export interface BrandConfig {
   startButton: string;
   pickTitle: string;
   welcomeMessage?: string; // Friendly subtitle for the start screen
+  titleColor?: string; // Dynamic title color
   };
   boxCount: { //defines how many boxes should be on mobile or desktop
     desktop: number;
@@ -33,7 +38,6 @@ export interface Prize {
   title: string //what the user sees
  // description: string
   value: "HIGH" | "MEDIUM" | "LOW" //value for wieghted probability 
-  icon: string //emoji or image presenting the prize 
   image:string
 }
 
@@ -46,20 +50,25 @@ export interface ProbabilityWeights { //controls the relative chance of a rpize 
 // Default Wiply-style configuration CAN BE CHANGED AND UPDATED TO ALLOCATE FOR OTHER CLIENTS
 export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult of wiply brand
   name: "Wiply Demo",
-  primaryColor: "from-violet-700 to-violet-700", // button for Start game
+  primaryColor: "from-violet-700 to-violet-700", // button for Start game (not used)
   accentColor: "from-purple-600 to-violet-600", // not directly used, keep for future
   backgroundColor: "bg-gradient-to-br from-sky-50 to-sky-50", // main background
   textColor: "text-violet-700", // main header text
-  logo: "/wiply.png", //brand logo
+  logo: "/wiply.png", //brand logo 
+  logoSize: { //logo size configuration
+    mobile: 32, //size of logo on mobile for boxes
+    desktop: 64, //size of logo on desktop for boxes 
+  },
   boxImage: "/placeholder.png", //box image if user wants to use an image instead of animation but in this case not used. 
   startScreenImage: "/mysteryBOX.webp", // Use a fun, game-like image (replace with your asset)
   //gameAreaBg: "bg-indigo-300 bg-opacity-80", // game area background like where the boxes are
   text: { //change any text here to customize for a specifc client
-    gameTitle: "Pick-a-Box Game",
-    readyDescription: "Ready to uncover a surprise? Click start and see what’s inside!",
-    startButton: "Start Game",
-    pickTitle: "Choose a box!",
-    welcomeMessage: "Ready to play? Pick a box and see what you win!", // Friendly subtitle
+    gameTitle: "Pick-a-Box Game", //title of the game (not used in this case)
+    readyDescription: "Ready to uncover a surprise? Click start and see what’s inside!", //not used in this case 
+    startButton: "Start Game", //also not used
+    pickTitle: "Choose a box!", //only title that is used in this case (in playing state)
+    welcomeMessage: "Ready to play? Pick a box and see what you win!", // Friendly subtitle not used in this case
+    titleColor: "text-violet-700", // Dynamic title color
   }, 
   boxCount: { //boxcount setting
     desktop: 6,
@@ -71,7 +80,6 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       type: "prize", //prize
       title: "20% Off Coupon Code", //title for prize or loss
       value: "LOW", //weight
-      icon: "🎟️", //can change logo based on brand
       image: "/prizes/shoppingCart.png",
     },
     {
@@ -79,7 +87,6 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       type: "prize",
       title: "Buy one Get two Free pairs of earrings",
       value: "MEDIUM",
-      icon: "🚚",
       image: "/prizes/jewl.png",
     },
     {
@@ -87,7 +94,6 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       type: "prize",
       title: "Buy one get one 50% off any pair of Jeans",
       value: "MEDIUM",
-      icon: "🎁",
       image: "/prizes/jeanss.png",
     },
     {
@@ -95,7 +101,6 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       type: "prize",
       title: "25% off any frangrance",
       value: "HIGH",
-      icon: "⭐",
       image: "/prizes/perfumeee.png",
     },
     {
@@ -103,7 +108,6 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       type: "try-again",
       title: "Try Again Tomorrow!",
       value: "MEDIUM",
-      icon: "🔄",
       image: "/prizes/TRY.png",
     },
     {
@@ -111,7 +115,6 @@ export const DEFAULT_BRAND_CONFIG: BrandConfig = { //brandset up for the defult 
       type: "try-again",
       title: "Sorry unlucky pick! Try Again!",
       value: "LOW",
-      icon: "😈",
       image: "/prizes/RedX.png",
     },
   ],

@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
-import { CouponPopup } from "@/components/couponCard"
+
 import { DEFAULT_BRAND_CONFIG } from "@/components/brand-config"
 import confetti from 'canvas-confetti'
-import ReactConfetti from "react-confetti"
+
 import Lottie from "lottie-react"
 import openBOX from "@/components/openBOX.json"
 
@@ -25,12 +25,12 @@ export default function PickABoxGame() {
   const config = DEFAULT_BRAND_CONFIG//get the brand configuration
   const isMobile = useIsMobile()  //checks if device is mobile
   const numBoxes = isMobile ? config.boxCount.mobile : config.boxCount.desktop // Determine the number of boxes based on device
-  const [gameState, setGameState] = useState<"waiting" | "playing" | "finished">("waiting")// Game state: waiting (start screen), playing, or finished (coupon)
+  const [gameState, setGameState] = useState<"waiting" | "playing" | "finished">("playing")// Game state: waiting (start screen), playing, or finished (coupon)
   const [selectedBox, setSelectedBox] = useState<number | null>(null) // Index of the selected box
   const [revealedPrize, setRevealedPrize] = useState<typeof config.prizes[0] | null>(null) // The prize revealed after selecting a box
   const [boxPrizes, setBoxPrizes] = useState<typeof config.prizes[0][]>([]) // The prizes assigned to each box for this round
-  const [showCoupon, setShowCoupon] = useState(false) // Whether to show the coupon popup
-  const [showConfetti, setShowConfetti] = useState(false) // Whether to show confetti animation
+
+
   const [showPrizeFlyout, setShowPrizeFlyout] = useState(false);
   const [flyoutStyle, setFlyoutStyle] = useState<React.CSSProperties | null>(null);
   const boxRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -133,14 +133,14 @@ export default function PickABoxGame() {
         
         // Step 5: Hide the flyout and show the coupon after the animation completes
         
-        // After the flyout animation, hide the image and show the coupon popup
+        // After the flyout animation, hide the image (platform will handle results)
         // For wins: wait for confetti burst to finish (4.5s total)
         // For losses: shorter wait since no confetti (2.7s total)
-        const couponDelay = boxPrizes[idx].type === "prize" ? 4500 : 2700;
+        const hideDelay = boxPrizes[idx].type === "prize" ? 4500 : 2700;
         setTimeout(() => {
           setShowPrizeFlyout(false);
-          setShowCoupon(true);
-        }, couponDelay);
+          // Platform will handle the result display
+        }, hideDelay);
       }, 600); // Wait for box opening animation
       // Play sounds as before
       if (boxPrizes[idx].type === "prize") { //if prize play win sound
@@ -163,38 +163,27 @@ export default function PickABoxGame() {
     }
   }
 
-  // Reset game state when box count changes (responsive)
+  // Initialize game when component mounts or box count changes
   useEffect(() => {
-    setBoxPrizes([]) // Clear prizes
+    setBoxPrizes(Array(numBoxes).fill(null).map(getRandomPrize)) // Generate initial prizes
     setSelectedBox(null) // Clear selection
     setRevealedPrize(null) // Clear revealed prize
-    setGameState("waiting") // Reset to waiting
-    setShowCoupon(false) // Hide coupon
-    setShowConfetti(false) // Hide confetti
+    setGameState("playing") // Reset to playing
   }, [numBoxes])
 
-  // Trigger background confetti when coupon shows for prizes
+  // Initialize game on first mount
   useEffect(() => {
-    if (showCoupon && revealedPrize?.type === "prize") {
-      setShowConfetti(true);
-    }
-  }, [showCoupon, revealedPrize]);
+    setBoxPrizes(Array(numBoxes).fill(null).map(getRandomPrize))
+  }, []) // Empty dependency array means this runs once on mount
+
+
 
   // Render the game UI
   return (
     // Main background and layout
-    <div className={`min-h-screen ${config.backgroundColor} flex flex-col items-center justify-center p-6`}>
+    <div className={`min-h-screen ${config.backgroundColor} flex flex-col items-center justify-center p-6 overflow-hidden fixed inset-0`} style={{ minHeight: '100vh', height: '100vh' }}>
 
-      {/* Background confetti only when coupon is open and prize is a prize */}
-      {showConfetti && revealedPrize?.type === "prize" && (
-        <ReactConfetti
-          width={window.innerWidth}
-          height={window.innerHeight}
-          recycle={false}
-          numberOfPieces={700}
-          onConfettiComplete={() => setShowConfetti(false)}
-        />
-      )}
+
       <audio ref={errorAudioRef} src="/error-2-36058.mp3" preload="auto" /> 
       <audio ref={winningAudioRef} src="/winner.mp3" preload="auto" />
       {/* Logo and header */}
@@ -227,52 +216,8 @@ export default function PickABoxGame() {
       {/* Playing state: show boxes */}
       {gameState === "playing" && (
         <>
-          {/* Question marks for mobile screen only */}
-          {/* Indigo-900 */}
-          {isMobile ? (
-            <>
-              <div style={{ position: 'fixed', top: '10%', left: '5%', fontSize: '2.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '50%', right: '10%', fontSize: '2.2rem', color: '#3730a3', opacity: 0.22, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '40%', left: '60%', fontSize: '2.8rem', color: '#312e81', opacity: 0.18, transform: 'rotate(12deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '80%', right: '7%', fontSize: '2.8rem', color: '#312e81', opacity: 0.33, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '38%', left: '13%', fontSize: '3.6rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '30%', right: '1%', fontSize: '2.3rem', color: '#3730a3', opacity: 0.31, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '8%', left: '60%', fontSize: '3.8rem', color: '#312e81', opacity: 0.27, transform: 'rotate(15deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '83%', left: '20%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.35, transform: 'rotate(25deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '90%', right: '35%', fontSize: '2.5rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '53%', left: '30%', fontSize: '2.2rem', color: '#312e81', opacity: 0.30, transform: 'rotate(3deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '60%', left: '5%', fontSize: '1.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '8%', right: '5%', fontSize: '2.1rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '6%', left: '22%', fontSize: '2.0rem', color: '#312e81', opacity: 0.30, transform: 'rotate(18deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '93%', left: '7%', fontSize: '2.0rem', color: '#312e81', opacity: 0.30, transform: 'rotate(-18deg)', zIndex: 0 }}>?</div>
-            </>
-          ) : (
-            <>
-            {/* question marks for desktop screen only*/ }
-              <div style={{ position: 'fixed', top: '8%', left: '3%', fontSize: '4.5rem', color: '#312e81', opacity: 0.22, transform: 'rotate(-20deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '55%', left: '7%', fontSize: '3.2rem', color: '#312e81', opacity: 0.30, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '25%', right: '40%', fontSize: '5.5rem', color: '#312e81', opacity: 0.25, transform: 'rotate(15deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '75%', right: '7%', fontSize: '2.8rem', color: '#312e81', opacity: 0.33, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '38%', left: '13%', fontSize: '3.8rem', color: '#312e81', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '85%', left: '15%', fontSize: '5rem', color: '#312e81', opacity: 0.20, transform: 'rotate(12deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '10%', right: '13%', fontSize: '4.2rem', color: '#312e81', opacity: 0.31, transform: 'rotate(7deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '90%', right: '15%', fontSize: '5rem', color: '#312e81', opacity: 0.20, transform: 'rotate(-14deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '80%', right: '75%', fontSize: '4.1rem', color: '#312e81', opacity: 0.20, transform: 'rotate(-10deg)', zIndex: 0 }}>?</div>
-              {/* Indigo-800 */}
-              <div style={{ position: 'fixed', top: '15%', left: '20%', fontSize: '2.8rem', color: '#3730a3', opacity: 0.34, transform: 'rotate(-12deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '60%', left: '25%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.22, transform: 'rotate(8deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '30%', right: '10%', fontSize: '4.1rem', color: '#3730a3', opacity: 0.20, transform: 'rotate(11deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '30%', right: '30%', fontSize: '2.3rem', color: '#3730a3', opacity: 0.31, transform: 'rotate(10deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '60%', left: '60%', fontSize: '5rem', color: '#312e81', opacity: 0.27, transform: 'rotate(0deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '10%', right: '55%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.30, transform: 'rotate(5deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '90%', left: '45%', fontSize: '2.8rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-5deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '70%', left: '40%', fontSize: '2.5rem', color: '#3730a3', opacity: 0.35, transform: 'rotate(-9deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '40%', right: '55%', fontSize: '2.5rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-5deg)', zIndex: 0 }}>?</div>
-              <div style={{ position: 'fixed', top: '20%', right: '30%', fontSize: '3.5rem', color: '#3730a3', opacity: 0.25, transform: 'rotate(-8deg)', zIndex: 0 }}>?</div>
-            </>
-          )}
           <h2 className={`bounce-text text-2xl font-semibold mb-4 ${config.textColor}`}>{config.text.pickTitle}</h2> {/* Pick a box title */}
-          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${numBoxes} gap-4`}>
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${numBoxes} gap-2 sm:gap-4 max-w-full`}>
             {/* Render each box */}
             {boxPrizes.map((prize, i) => {
               // Determine if this box is selected
@@ -283,10 +228,9 @@ export default function PickABoxGame() {
                 <div
                   key={i} // Unique key
                   ref={el => { boxRefs.current[i] = el; }}
-                  className={`relative box-glow cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
+                  className={`relative cursor-pointer w-full aspect-square rounded-xl flex flex-col items-center justify-end text-3xl font-bold transition transform
                   hover:scale-105 
-                  ${isSelected ? "ring-4 ring-purple-400" : ""}
-                  ${selectedBox === null ? "rocking-box" : ""} 
+                  ${selectedBox !== null && selectedBox !== i ? "scale-90 opacity-60" : ""}
                 `} //makes the box glow when the cursor points onto it with the color purple. 
                   onClick={() => selectBox(i)} // Handle box click
                 >
@@ -297,25 +241,26 @@ export default function PickABoxGame() {
                         animationData={openBOX}  //type of Lottie animation that was imported, can be switched if a different animation is imported
                         loop={false} //only plays once and not repeated 
                         autoplay={isSelected} // Only play if selected
-                        style={isSelected //if selected it gets a scale boost of 1.2 which makes the image slightly bigger
-                           ? { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto", transform: "scale(1.2)" } //Box sizes
-                           : { width: isMobile ? 250 : 430, height: isMobile ? 250 : 420, margin: "0 auto" } //Box sizes 
-                              }
+                        style={{ 
+                          width: isMobile ? 200 : 350, 
+                          height: isMobile ? 200 : 350, 
+                          margin: "0 auto",
+                          transform: "scale(1)"
+                        }}
                                 />
                                  <Image
                                    src={config.logo} //overlays the logo above the box
                                    alt="Box Logo"
-                                   width={isMobile ? 32 : 64} //logo size 
-                                   height={isMobile ? 32 : 64} //logo size 
+                                   width={isMobile ? config.logoSize.mobile : config.logoSize.desktop} //logo size 
+                                   height={isMobile ? config.logoSize.mobile : config.logoSize.desktop} //logo size 
                                    style={{ 
                                    position: 'absolute', //placed relative to to parent container 
-                                   top: '50%', //centered
+                                   top: '57%', //lowered from centered
                                    left: isMobile ? '60%' : '65%',
                                    transform: isMobile ? 'translate(-50%, -50%)' : 'translate(-60%, -50%)',
-                                   opacity: 0.5, //fades logo
+                                   opacity: 0.7, //slightly faded but keeps original colors
                                    pointerEvents: 'none', // none clickable
-                                   filter: 'grayscale(1) contrast(1.2)' //makes it readable but not overpowering 
-                                     }}
+                                   }}
                                        className="select-none"
                                        draggable={false} 
                                      />
@@ -327,23 +272,7 @@ export default function PickABoxGame() {
                          </>
                        )}
 
-                       {/* Coupon popup for prize/try again */}
-                       <CouponPopup
-                         isOpen={showCoupon} // Show/hide popup
-                         onClose={() => {
-                           setShowCoupon(false) // Hide popup
-                           if (revealedPrize && revealedPrize.type === "try-again") {
-                             setGameState("waiting") // Reset for try again
-                             setSelectedBox(null)
-                             setRevealedPrize(null)
-                             setBoxPrizes([])
-                             setShowConfetti(false)
-                           } else {
-                             setGameState("finished") // End game for win
-                           }
-                         }}
-                         prize={revealedPrize} // Prize to show
-                       />
+
 
                        {/* Flyout prize image animation (from box to center, scaling up)
                            - Rendered at the root of the game area, as the last child
